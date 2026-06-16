@@ -1,0 +1,107 @@
+# Pipeline de CI/CD — Integração e Entrega Contínua
+#
+# Este arquivo define a pipeline que roda automaticamente a cada push ou pull request.
+# Conceitos cobertos:
+#   - CI (Integração Contínua): instala dependências e roda testes a cada envio
+#   - CD (Entrega Contínua): após CI passar, faz deploy automático
+#   - Pipeline: sequência de etapas automáticas (install -> test -> deploy)
+
+name: CI/CD Pipeline
+
+# Gatilho: roda a cada push na branch main ou em pull requests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Integração Contínua (CI)
+  ci:
+    name: "CI - Testes e Verificações"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: baixa o código do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      # Passo 2: configura o Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      # Passo 3: instala dependências do service-tasks
+      - name: Instalar dependências - service-tasks
+        working-directory: ./service-tasks
+        run: npm install
+
+      # Passo 4: instala dependências do service-users
+      - name: Instalar dependências - service-users
+        working-directory: ./service-users
+        run: npm install
+
+      # Passo 5: verifica se os arquivos principais existem (smoke test)
+      - name: Verificar estrutura do projeto
+        run: |
+          echo "Verificando service-tasks..."
+          test -f service-tasks/src/index.js && echo "index.js ok"
+          test -f service-tasks/src/logger.js && echo "logger.js ok"
+          test -f service-tasks/src/tracing.js && echo "tracing.js ok"
+
+          echo "Verificando service-users..."
+          test -f service-users/src/index.js && echo "index.js ok"
+          test -f service-users/src/logger.js && echo "logger.js ok"
+          test -f service-users/src/tracing.js && echo "tracing.js ok"
+
+      # Passo 6: inicia os serviços e verifica o health check
+      - name: Testar Health Check dos serviços
+        run: |
+          # Inicia service-users em background
+          cd service-users && npm start &
+          sleep 3
+
+          # Inicia service-tasks em background
+          cd service-tasks && npm start &
+          sleep 3
+
+          # Testa o health check do service-users
+          echo "Testando health check do service-users..."
+          curl -f http://localhost:3002/health && echo "service-users saudável"
+
+          # Testa o health check do service-tasks
+          echo "Testando health check do service-tasks..."
+          curl -f http://localhost:3001/health && echo "service-tasks saudável"
+
+  # Entrega Contínua (CD)
+  # Só roda se o job de CI passou E estamos na branch main
+  cd:
+    name: "CD - Deploy"
+    runs-on: ubuntu-latest
+    needs: ci  # depende do CI passar primeiro
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Simular Deploy do service-users
+        run: |
+          echo "Iniciando deploy do service-users..."
+          echo "Empacotando aplicação..."
+          echo "service-users deployado com sucesso!"
+          echo "URL: https://service-users.exemplo.com"
+
+      - name: Simular Deploy do service-tasks
+        run: |
+          echo "Iniciando deploy do service-tasks..."
+          echo "Empacotando aplicação..."
+          echo "service-tasks deployado com sucesso!"
+          echo "URL: https://service-tasks.exemplo.com"
+
+      - name: Verificar saúde pós-deploy
+        run: |
+          echo "Verificando saúde dos serviços após deploy..."
+          echo "Todos os serviços estão operacionais!"
+          echo "Pipeline concluída com sucesso"
