@@ -3,6 +3,6 @@
 // Exemplo: https://service-users-xxxx.onrender.com
 
 const CONFIG = {
-  USERS_SERVICE_URL: "https://service-users.onrender.com",
+  USERS_SERVICE_URL: "https://service-users-u6i9.onrender.com",
   TASKS_SERVICE_URL: "https://service-tasks.onrender.com",
 };
