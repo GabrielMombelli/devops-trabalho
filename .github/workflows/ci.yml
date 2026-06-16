@@ -4,7 +4,7 @@
 # Conceitos cobertos:
 #   - CI (Integração Contínua): instala dependências e roda testes a cada envio
 #   - CD (Entrega Contínua): após CI passar, faz deploy automático
-#   - Pipeline: sequência de etapas automáticas (install -> test -> deploy)
+#   - Pipeline: sequência de etapas automáticas (install → test → deploy)
 
 name: CI/CD Pipeline
 
@@ -16,7 +16,7 @@ on:
     branches: [main]
 
 jobs:
-  # Integração Contínua (CI)
+  # JOB 1: Integração Contínua (CI)
   ci:
     name: "CI - Testes e Verificações"
     runs-on: ubuntu-latest
@@ -55,6 +55,12 @@ jobs:
           test -f service-users/src/logger.js && echo "logger.js ok"
           test -f service-users/src/tracing.js && echo "tracing.js ok"
 
+          echo "Verificando frontend..."
+          test -f frontend/index.html && echo "index.html ok"
+          test -f frontend/config.js && echo "config.js ok"
+          test -f frontend/api.js && echo "api.js ok"
+          test -f frontend/app.js && echo "app.js ok"
+
       # Passo 6: inicia os serviços e verifica o health check
       - name: Testar Health Check dos serviços
         run: |
@@ -74,7 +80,7 @@ jobs:
           echo "Testando health check do service-tasks..."
           curl -f http://localhost:3001/health && echo "service-tasks saudável"
 
-  # Entrega Contínua (CD)
+  # JOB 2: Entrega Contínua (CD)
   # Só roda se o job de CI passou E estamos na branch main
   cd:
     name: "CD - Deploy"
@@ -104,4 +110,10 @@ jobs:
         run: |
           echo "Verificando saúde dos serviços após deploy..."
           echo "Todos os serviços estão operacionais!"
-          echo "Pipeline concluída com sucesso"
+          echo "Pipeline concluída com sucesso 🎉"
+      - name: Simular Deploy do frontend (Vercel)
+        run: |
+          echo "Iniciando deploy do frontend no Vercel..."
+          echo "Enviando arquivos estáticos..."
+          echo "Frontend deployado com sucesso!"
+          echo "URL: https://devops-trabalho.vercel.app"

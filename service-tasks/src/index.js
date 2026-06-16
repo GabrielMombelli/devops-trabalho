@@ -16,7 +16,7 @@ const startTime = Date.now();
 app.use(express.json());
 app.use(tracingMiddleware); // injeta traceId em todas as requisições
 
-// Health Check
+// Health Check 
 // Rota obrigatória em microserviços: permite que orquestradores (Kubernetes,
 // Railway, etc.) saibam se o serviço está saudável
 app.get("/health", (req, res) => {
@@ -33,26 +33,26 @@ app.get("/health", (req, res) => {
   res.json(health);
 });
 
-// Rotas de Tarefas
+// Rotas de Tarefas 
 app.get("/tasks", tasksController.getAll);
 app.get("/tasks/:id", tasksController.getById);
 app.post("/tasks", tasksController.create);
 app.put("/tasks/:id", tasksController.update);
 app.delete("/tasks/:id", tasksController.remove);
 
-// Rota não encontrada
+// Rota não encontrada 
 app.use((req, res) => {
   logger.warn("Rota não encontrada", { path: req.path, method: req.method });
   res.status(404).json({ error: "Rota não encontrada" });
 });
 
-// Tratamento global de erros
+// Tratamento global de erros 
 app.use((err, req, res, next) => {
   logger.error("Erro não tratado", { error: err.message, stack: err.stack });
   res.status(500).json({ error: "Erro interno do servidor" });
 });
 
-// Inicialização
+// Inicialização 
 app.listen(PORT, () => {
   logger.info(`service-tasks iniciado na porta ${PORT}`);
 });

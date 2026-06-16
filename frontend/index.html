@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOps Tasks</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --accent:    #6366f1;
+      --accent-h:  #818cf8;
+      --ok:        #22c55e;
+      --warn:      #f59e0b;
+      --danger:    #ef4444;
+      --radius:    10px;
+      --font:      'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    .tag {
+      font-size: 11px;
+      background: #1e2035;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .health {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .health__label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .health__services {
+      display: flex;
+      gap: 1.5rem;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+
+    .health__item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .health__name {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .health__value {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .health__value--ok    { color: var(--ok); }
+    .health__value--error { color: var(--danger); }
+
+    .btn--refresh {
+      margin-left: auto;
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      header { padding: 1rem; }
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .section__header {
+      padding: .875rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .section__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    .section__body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form input, .form select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: .5rem .75rem;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+      width: 100%;
+    }
+
+    .form input:focus, .form select:focus {
+      border-color: var(--accent);
+    }
+
+    .form input::placeholder { color: var(--muted); }
+
+    .btn {
+      padding: .5rem 1rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn:not(:disabled):hover { opacity: .85; }
+
+    .btn--primary  { background: var(--accent); color: #fff; }
+    .btn--danger   { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .btn--ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn--sm       { padding: .3rem .65rem; font-size: 12px; }
+
+    .card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: .65rem .75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+
+    .card__info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .card__title {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card__subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .card__actions {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-shrink: 0;
+    }
+
+    .select--sm {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: .25rem .5rem;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #users-list, #tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: .65rem 1.1rem;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .toast--visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast--success { background: #14532d; color: var(--ok); border: 1px solid #166534; }
+    .toast--error   { background: #450a0a; color: var(--danger); border: 1px solid #7f1d1d; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DevOps <span>Tasks</span></h1>
+    <span class="tag">microserviços + CI/CD</span>
+  </header>
+
+  <main>
+
+    <!-- Health Check dos serviços -->
+    <div class="health">
+      <span class="health__label">Status</span>
+      <div class="health__services">
+        <div class="health__item">
+          <span class="health__name">service-users</span>
+          <span class="health__value" id="health-users">verificando...</span>
+        </div>
+        <div class="health__item">
+          <span class="health__name">service-tasks</span>
+          <span class="health__value" id="health-tasks">verificando...</span>
+        </div>
+      </div>
+      <button class="btn btn--ghost btn--sm btn--refresh" onclick="checkHealth()">Atualizar</button>
+    </div>
+
+    <div class="grid">
+
+      <!-- Seção de Usuários -->
+      <div class="section">
+        <div class="section__header">
+          <span class="section__dot"></span>
+          Usuários
+        </div>
+        <div class="section__body">
+          <div class="form">
+            <input id="user-name" type="text" placeholder="Nome" />
+            <input id="user-email" type="email" placeholder="Email" />
+            <button id="btn-create-user" class="btn btn--primary" onclick="createUser()">
+              Adicionar usuário
+            </button>
+          </div>
+          <div id="users-list">
+            <p class="empty">Carregando...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção de Tarefas -->
+      <div class="section">
+        <div class="section__header">
+          <span class="section__dot"></span>
+          Tarefas
+        </div>
+        <div class="section__body">
+          <div class="form">
+            <input id="task-title" type="text" placeholder="Título da tarefa" />
+            <select id="task-user">
+              <option value="">Selecione um usuário</option>
+            </select>
+            <button id="btn-create-task" class="btn btn--primary" onclick="createTask()">
+              Adicionar tarefa
+            </button>
+          </div>
+          <div id="tasks-list">
+            <p class="empty">Carregando...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

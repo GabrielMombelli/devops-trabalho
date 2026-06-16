@@ -1,0 +1,31 @@
+# Arquivo de configuração do Render
+# Define os dois microserviços que serão deployados automaticamente
+# Basta conectar o repositório no Render e ele lê esse arquivo
+
+services:
+  # Microserviço de Usuários
+  - type: web
+    name: service-users
+    runtime: node
+    rootDir: service-users
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3002
+    healthCheckPath: /health
+
+  # Microserviço de Tarefas
+  - type: web
+    name: service-tasks
+    runtime: node
+    rootDir: service-tasks
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3001
+      # URL do service-users no Render (preenchida após o primeiro deploy)
+      - key: USERS_SERVICE_URL
+        value: https://service-users.onrender.com
+    healthCheckPath: /health
