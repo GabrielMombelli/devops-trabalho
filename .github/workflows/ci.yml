@@ -8,7 +8,7 @@
 
 name: CI/CD Pipeline
 
-# Gatilho: roda a cada push na branch main ou em pull requests
+# Gatilho: roda a cada push na branch main ou em pull requests//
 on:
   push:
     branches: [main]
