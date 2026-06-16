@@ -24,11 +24,11 @@ jobs:
     steps:
       # Passo 1: baixa o código do repositório
       - name: Checkout do código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Passo 2: configura o Node.js
       - name: Configurar Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -90,7 +90,7 @@ jobs:
 
     steps:
       - name: Checkout do código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Simular Deploy do service-users
         run: |
