@@ -1,4 +1,3 @@
-// src/index.js - service-users
 // Microserviço de Usuários
 // Porta: 3002
 
@@ -11,20 +10,28 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 const startTime = Date.now();
 
+// CORS
+// Permite que o frontend no Vercel acesse este serviço
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-trace-id");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json());
 app.use(tracingMiddleware);
 
 // Health Check
 app.get("/health", (req, res) => {
   const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
-
   const health = {
     status: "ok",
     service: "service-users",
     uptime: `${uptimeSeconds}s`,
     timestamp: new Date().toISOString(),
   };
-
   logger.info("Health check realizado", { traceId: req.traceId, uptime: health.uptime });
   res.json(health);
 });
