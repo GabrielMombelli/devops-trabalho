@@ -1,7 +1,17 @@
 # DevOps na Prática — Sistema de Tarefas
 
-Projeto desenvolvido para a disciplina de Análise e Desenvolvimento de Sistemas (TADS).  
-Demonstra os conceitos de DevOps vistos em aula aplicados em uma aplicação real.
+Projeto desenvolvido para a disciplina de Análise e Desenvolvimento de Sistemas (TADS) — UNIPAR.
+Demonstra os conceitos de DevOps vistos em aula aplicados em uma aplicação real, com deploy público.
+
+---
+
+## Acesse o sistema no ar
+
+- **Frontend:** https://devops-trabalho-tan.vercel.app
+- **service-tasks:** https://service-tasks.onrender.com
+- **service-users:** https://service-users-u6i9.onrender.com
+
+> Os serviços no Render usam o plano free, então podem demorar ~30s para "acordar" na primeira requisição após um período de inatividade.
 
 ---
 
@@ -10,7 +20,7 @@ Demonstra os conceitos de DevOps vistos em aula aplicados em uma aplicação rea
 ```
 ┌─────────────────────┐        HTTP + TraceID        ┌─────────────────────┐
 │   service-tasks     │ ─────────────────────────── ▶│   service-users     │
-│   (porta 3001)      │                               │   (porta 3002)      │
+│   (Render)           │                               │   (Render)           │
 │                     │                               │                     │
 │  GET  /tasks        │                               │  GET  /users        │
 │  GET  /tasks/:id    │                               │  GET  /users/:id    │
@@ -18,6 +28,14 @@ Demonstra os conceitos de DevOps vistos em aula aplicados em uma aplicação rea
 │  PUT  /tasks/:id    │                               │  DEL  /users/:id    │
 │  DEL  /tasks/:id    │                               │  GET  /health       │
 │  GET  /health       │                               └─────────────────────┘
+└─────────────────────┘
+          ▲
+          │ HTTP
+          │
+┌─────────────────────┐
+│      frontend        │
+│   (Vercel - estático) │
+│  HTML / CSS / JS puro │
 └─────────────────────┘
 ```
 
@@ -27,14 +45,15 @@ Demonstra os conceitos de DevOps vistos em aula aplicados em uma aplicação rea
 
 ### 1. CI/CD e Pipelines
 - **Pipeline** definida em `.github/workflows/ci.yml`
-- A cada `push` na branch `main`, a pipeline executa automaticamente:
+- A cada `push` na branch `master`, o GitHub Actions executa automaticamente:
   1. Instala dependências dos dois serviços
-  2. Verifica a estrutura do projeto
+  2. Verifica a estrutura do projeto (backend e frontend)
   3. Sobe os serviços e testa o `/health`
-  4. Faz o deploy (simulado)
+  4. Simula o deploy
+- O **deploy real** acontece via integração contínua do Render e Vercel: qualquer push na branch principal já dispara um novo deploy automaticamente nos dois.
 
 ### 2. Microserviços
-- Dois serviços independentes: `service-tasks` e `service-users`
+- Dois serviços de backend independentes: `service-tasks` e `service-users`
 - Cada serviço tem sua própria base de código, dependências e porta
 - Comunicam-se via HTTP com payload JSON
 - `service-tasks` consulta `service-users` para validar o usuário antes de criar uma tarefa
@@ -53,13 +72,19 @@ Todos os eventos são registrados com nível de severidade:
 ### 4. Monitoramento — Health Check
 - Rota `GET /health` em cada serviço
 - Retorna: status, nome do serviço, uptime e timestamp
-- Usada pela pipeline de CI para verificar se o serviço subiu corretamente
+- Usada pela pipeline de CI e exibida em tempo real no frontend
 
 ### 5. Observabilidade — Tracing Distribuído
-- Cada requisição recebe um `traceId` único
-- O `traceId` é propagado entre serviços via header `x-trace-id`
+- Cada requisição recebe um `traceId` único, gerado já no frontend
+- O `traceId` é propagado entre todos os serviços via header `x-trace-id`
 - Isso permite rastrear o caminho completo de uma requisição mesmo atravessando vários serviços
 - O `traceId` aparece em todos os logs e nas respostas da API
+
+### 6. Deploy em nuvem (CD na prática)
+- **Render** hospeda os dois microserviços backend (Web Services gratuitos)
+- **Vercel** hospeda o frontend estático
+- **CORS** configurado nos dois backends para aceitar requisições do domínio do Vercel
+- Variável de ambiente `USERS_SERVICE_URL` configurada no Render para o `service-tasks` encontrar o `service-users`
 
 ---
 
@@ -72,7 +97,7 @@ Todos os eventos são registrados com nível de severidade:
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/seu-usuario/devops-trabalho.git
+git clone https://github.com/GabrielMombelli/devops-trabalho.git
 cd devops-trabalho
 
 # 2. Instale as dependências de cada serviço
@@ -82,28 +107,32 @@ cd service-tasks && npm install && cd ..
 # 3. Suba os serviços (em terminais separados)
 cd service-users && npm start
 cd service-tasks && npm start
+
+# 4. Abra o frontend
+# Basta abrir frontend/index.html no navegador,
+# ou rodar um servidor estático simples:
+cd frontend && npx serve .
 ```
 
-### Testando a API
+> Para testar localmente, lembre de apontar `frontend/config.js` para `http://localhost:3001` e `http://localhost:3002`.
+
+### Testando a API diretamente
 
 ```bash
 # Health checks
-curl http://localhost:3001/health
-curl http://localhost:3002/health
+curl https://service-tasks.onrender.com/health
+curl https://service-users-u6i9.onrender.com/health
 
 # Listar tarefas
-curl http://localhost:3001/tasks
+curl https://service-tasks.onrender.com/tasks
 
 # Criar tarefa (valida se o userId existe no service-users)
-curl -X POST http://localhost:3001/tasks \
+curl -X POST https://service-tasks.onrender.com/tasks \
   -H "Content-Type: application/json" \
   -d '{"title": "Nova tarefa", "userId": 1}'
 
-# Listar usuários
-curl http://localhost:3002/users
-
 # Criar usuário
-curl -X POST http://localhost:3002/users \
+curl -X POST https://service-users-u6i9.onrender.com/users \
   -H "Content-Type: application/json" \
   -d '{"name": "Maria", "email": "maria@email.com"}'
 ```
@@ -116,22 +145,45 @@ curl -X POST http://localhost:3002/users \
 devops-trabalho/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # Pipeline de CI/CD
+│       └── ci.yml              # Pipeline de CI/CD (GitHub Actions)
 │
-├── service-tasks/              # Microserviço de Tarefas (porta 3001)
+├── render.yaml                  # Configuração de deploy dos backends no Render
+├── vercel.json                  # Configuração de deploy do frontend no Vercel
+│
+├── service-tasks/                # Microserviço de Tarefas
 │   ├── src/
-│   │   ├── index.js            # Entrada da aplicação, rotas, health check
-│   │   ├── logger.js           # Logs com níveis de severidade
-│   │   ├── tracing.js          # Middleware de tracing distribuído
-│   │   ├── database.js         # Banco de dados em memória
-│   │   └── tasksController.js  # Lógica de negócio + comunicação com service-users
+│   │   ├── index.js              # Entrada da aplicação, rotas, health check, CORS
+│   │   ├── logger.js              # Logs com níveis de severidade
+│   │   ├── tracing.js             # Middleware de tracing distribuído
+│   │   ├── database.js            # Banco de dados em memória
+│   │   └── tasksController.js     # Lógica de negócio + comunicação com service-users
 │   └── package.json
 │
-└── service-users/              # Microserviço de Usuários (porta 3002)
-    ├── src/
-    │   ├── index.js            # Entrada da aplicação, rotas, health check
-    │   ├── logger.js           # Logs com níveis de severidade
-    │   ├── tracing.js          # Middleware de tracing distribuído
-    │   └── usersController.js  # Lógica de negócio
-    └── package.json
+├── service-users/                # Microserviço de Usuários
+│   ├── src/
+│   │   ├── index.js              # Entrada da aplicação, rotas, health check, CORS
+│   │   ├── logger.js              # Logs com níveis de severidade
+│   │   ├── tracing.js             # Middleware de tracing distribuído
+│   │   └── usersController.js     # Lógica de negócio
+│   └── package.json
+│
+└── frontend/                     # Interface web (deploy no Vercel)
+    ├── index.html                 # Estrutura e estilos da página
+    ├── config.js                  # URLs dos microserviços
+    ├── api.js                     # Camada de comunicação HTTP com os serviços
+    └── app.js                     # Lógica da interface (DOM, eventos, estado)
 ```
+
+---
+
+## Stack utilizada
+
+| Camada           | Tecnologia                          |
+|------------------|--------------------------------------|
+| Backend          | Node.js 18 + Express                  |
+| Frontend         | HTML, CSS e JavaScript puro (sem framework) |
+| Comunicação      | HTTP + JSON, com header `x-trace-id`   |
+| CI/CD            | GitHub Actions (`.github/workflows/ci.yml`) |
+| Deploy backend   | Render (Web Service, plano free)       |
+| Deploy frontend  | Vercel (Static Site)                   |
+| Versionamento    | Git + GitHub                           |
